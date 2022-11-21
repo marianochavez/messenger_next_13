@@ -3,7 +3,7 @@ import redis from '../../redis';
 import { Message } from '../../types';
 
 type Data = {
-    message: Message;
+    messages: Message | Message[];
 }
 
 type ErrorData = {
@@ -12,7 +12,10 @@ type ErrorData = {
 
 export default function handler(req: NextApiRequest, res: NextApiResponse<Data | ErrorData>) {
     switch (req.method) {
-        case 'POST':
+        case "GET":
+            return getMessages(req, res);
+
+        case "POST":
             return addMessage(req, res);
 
         default:
@@ -33,5 +36,13 @@ async function addMessage(req: NextApiRequest, res: NextApiResponse<Data | Error
     // push to redis
     await redis.hset('messages', message.id, JSON.stringify(newMessage))
 
-    res.status(200).json({ message: newMessage })
+    res.status(200).json({ messages: newMessage })
+}
+
+async function getMessages(req: NextApiRequest, res: NextApiResponse<Data | ErrorData>) {
+    const messagesRes = await redis.hvals('messages');
+    const messages: Message[] = messagesRes.map((message) => JSON.parse(message))
+    const sortedMessages = messages.sort((a, b) => b.created_at - a.created_at);
+
+    res.status(200).json({ messages: sortedMessages })
 }
