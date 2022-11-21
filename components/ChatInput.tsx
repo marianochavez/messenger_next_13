@@ -10,7 +10,6 @@ import { uploadMessageToUpstash } from "../utils/uptash";
 const ChatInput = () => {
   const [input, setInput] = useState("");
   const { data: messages, error, mutate } = useSWR("/api/messages", fetcher);
-  console.log(messages);
 
   async function addMessage(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
