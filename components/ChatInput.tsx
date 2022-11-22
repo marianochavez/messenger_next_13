@@ -6,8 +6,10 @@ import { v4 as uuidv4 } from "uuid";
 import fetcher from "../utils/fetchMessages";
 import { Message } from "../types";
 import { uploadMessageToUpstash } from "../utils/uptash";
+import { useSession } from "next-auth/react";
 
 const ChatInput = () => {
+  const { data: session } = useSession();
   const [input, setInput] = useState("");
   const { data: messages, error, mutate } = useSWR("/api/messages", fetcher);
 
@@ -24,14 +26,13 @@ const ChatInput = () => {
       id,
       message: messageToSend,
       created_at: Date.now(),
-      username: "Elon Musk",
-      avatar:
-        "https://github.githubassets.com/images/modules/logos_page/Octocat.png",
-      email: "elonmusk@gmail.com",
+      username: session?.user?.name!,
+      avatar: session?.user?.image!,
+      email: session?.user?.email!,
     };
 
     const newMessage = await uploadMessageToUpstash(message);
-    
+
     mutate([newMessage, ...messages!], {
       optimisticData: [message, ...messages!],
       rollbackOnError: true,
@@ -46,6 +47,7 @@ const ChatInput = () => {
       <input
         type="text"
         value={input}
+        disabled={!session}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Enter message here..."
         className="flex-1 rounded border border-gray-300 focus:outline-none 
