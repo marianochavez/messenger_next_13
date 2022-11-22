@@ -1,12 +1,14 @@
-import { unstable_getServerSession } from "next-auth";
-import { getSession, useSession } from "next-auth/react";
+"use client";
+
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 
-const Header = async() => {
-  const session = await unstable_getServerSession();
+const Header = () => {
+  const { data: session } = useSession();
+  const asPath = usePathname();
 
   if (session) {
     return (
@@ -46,10 +48,10 @@ const Header = async() => {
         </div>
 
         <Link
-          href="/auth/signin"
+          href={`${asPath === "/auth/signin" ? "/" : "/auth/signin"}`}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
-          Sign In
+          {asPath === "/auth/signin" ? "Home" : "Sign In"}
         </Link>
       </div>
     </header>
